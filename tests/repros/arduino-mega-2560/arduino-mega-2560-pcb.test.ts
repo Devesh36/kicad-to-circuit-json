@@ -70,7 +70,7 @@ function normalizeTransientSvgIds(svg: string) {
     .replaceAll(/knockout-mask-(pcb_copper_text_\d+)-\d+/g, "knockout-mask-$1")
 }
 
-test.failing("V12: Arduino Mega fabrication circles stay within 0.001 mm", () => {
+test("V12: Arduino Mega fabrication circles stay within 0.001 mm", () => {
   const converter = new KicadToCircuitJsonConverter()
   converter.addFile(
     "arduino-mega-2560.kicad_pcb",

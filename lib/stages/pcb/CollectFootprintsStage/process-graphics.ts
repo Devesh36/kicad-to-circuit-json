@@ -403,7 +403,13 @@ export function createFootprintCircle(params: {
   }
 
   // Circuit JSON does not currently have a fabrication-note circle primitive.
-  const numPoints = 16
+  // Keep fabrication-circle chord deviation within 0.001 mm.
+  const numPoints = Math.max(
+    16,
+    Math.ceil(
+      Math.PI / (2 * Math.asin(Math.sqrt(Math.min(1, 0.001 / (2 * radius))))),
+    ),
+  )
   const circleRoute: Array<{ x: number; y: number }> = []
   for (let i = 0; i <= numPoints; i++) {
     const angle = (i / numPoints) * 2 * Math.PI
