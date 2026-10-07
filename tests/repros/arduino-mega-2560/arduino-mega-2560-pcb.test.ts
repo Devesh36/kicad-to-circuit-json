@@ -58,7 +58,18 @@ function expectSvgSnapshot(
     writeFileSync(snapshotPath, normalizedSvg)
   }
 
-  expect(normalizedSvg).toBe(readFileSync(snapshotPath, "utf-8"))
+  expect(normalizeSvgNumericPrecision(normalizedSvg)).toBe(
+    normalizeSvgNumericPrecision(readFileSync(snapshotPath, "utf-8")),
+  )
+}
+
+// Ignore negligible Mac/Linux math differences in this snapshot comparison.
+function normalizeSvgNumericPrecision(svg: string): string {
+  return svg.replace(/"[^"]*"/g, (attribute) =>
+    attribute.replace(/-?\d+\.\d+(?:e[+-]?\d+)?/gi, (number) =>
+      String(Number(Number(number).toFixed(8))),
+    ),
+  )
 }
 
 function normalizeTransientSvgIds(svg: string) {
