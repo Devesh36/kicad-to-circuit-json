@@ -9,10 +9,18 @@ justifications are unchanged. Other circuit items are removed to isolate V02.
 ![Original KiCad left, round trip right](./__snapshots__/arduino-c12.comparison.png)
 
 KiCad displays the source right-justified properties as left-anchored readable
-text after applying the symbol orientation. The importer retains the raw
-`right` justification, so C12 and 100n extend left across the capacitor instead.
-The desired anchor assertion is marked `test.failing` on the repro branch; the
-fix layer will make it an ordinary regression test.
+text after applying the symbol orientation. The baseline importer retained the raw
+`right` justification, so C12 and 100n extended left across the capacitor instead.
+The fixed importer transforms the field baseline with the symbol rotation and
+mirror, reverses left/right anchoring when that baseline reverses, and keeps
+text at readable 0/90-degree angles. Absolute property positions are preserved.
+
+The ordinary regression assertion now passes. Coverage includes all four
+orthogonal symbol rotations, both field orientations, X/Y mirroring and all
+three horizontal anchors: 74 tests total. Native KiCad 10.0.6 exports independently
+confirmed the 24 rotation/mirror combinations underlying the expectations.
+With the production file restored to the repro revision, 37 tests fail; with the
+fix all 74 pass. The updated snapshot shows the labels clear of the capacitor.
 
 ## Reproduce
 

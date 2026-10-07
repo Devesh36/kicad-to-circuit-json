@@ -233,6 +233,23 @@ export class CollectLibrarySymbolsStage extends ConverterStage {
       }
 
       const fontSize = property.effects?.font?.size
+      // KiCad stores field justification before the symbol's rotation/mirror.
+      // Transform the field's baseline, then keep the glyphs readable: reversing
+      // the baseline reverses left/right anchoring, not the absolute field position.
+      const fieldAngle = ((property.at?.angle ?? 0) * Math.PI) / 180
+      const baseline = applyToPoint(
+        createSymbolTransform(symbol, { x: 0, y: 0 }, 1),
+        { x: Math.cos(fieldAngle), y: Math.sin(fieldAngle) },
+      )
+      const isVertical = Math.abs(baseline.y) > Math.abs(baseline.x)
+      const isReversed = (isVertical ? baseline.y : baseline.x) < 0
+      const storedAnchor = property.effects?.justify?.horizontal ?? "center"
+      const anchor =
+        isReversed && storedAnchor !== "center"
+          ? storedAnchor === "left"
+            ? "right"
+            : "left"
+          : storedAnchor
       this.ctx.db.schematic_text.insert({
         text: property.value,
         font_size: Math.max(
@@ -244,20 +261,10 @@ export class CollectLibrarySymbolsStage extends ConverterStage {
           this.ctx.k2cMatSch,
           property.at ?? symbol.at ?? { x: 0, y: 0 },
         ),
-        rotation: normalizeReadableRotation(
-          -(property.at?.angle ?? 0) + (symbol.at?.angle ?? 0),
-        ),
-        anchor: property.effects?.justify?.horizontal ?? "center",
+        rotation: isVertical ? 90 : 0,
+        anchor,
         color: "rgb(132, 0, 0)",
       })
     }
   }
-}
-
-const normalizeReadableRotation = (rotation: number): number => {
-  let normalized = ((rotation % 360) + 360) % 360
-  if (normalized > 180) normalized -= 360
-  if (normalized > 90) normalized -= 180
-  if (normalized < -90) normalized += 180
-  return normalized
 }
